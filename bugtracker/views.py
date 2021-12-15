@@ -1,14 +1,22 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+
 
 from .models import User
 
 
 def index(request):
-    return render(request, "bugtracker/index.html")
+    # Authenticated users view their inbox
+    if request.user.is_authenticated:
+        return render(request, "bugtracker/index.html")
+
+    # Everyone else is prompted to sign in
+    else:
+        return HttpResponseRedirect(reverse("login"))
 
 
 def login_view(request):

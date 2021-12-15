@@ -31,8 +31,6 @@ def create_groups(apps, schema_migration):
 
     ticket_permissions = get_permissions('ticket')
 
-    print('ticket perms ', ticket_permissions)
-
     admin.permissions.add(*ticket_permissions)
     project_manager.permissions.add(*ticket_permissions)
     submitter.permissions.add(*ticket_permissions)

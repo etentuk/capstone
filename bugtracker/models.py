@@ -14,7 +14,7 @@ class User(AbstractUser):
 
     ROLE_CHOICES = (
         (ADMIN, 'Admin'),
-        (PROJECT_MANAGER, 'Project Manger'),
+        (PROJECT_MANAGER, 'Project Manager'),
         (SUBMITTER, 'Submitter'),
         (DEVELOPER, 'Developer')
     )
@@ -22,19 +22,26 @@ class User(AbstractUser):
     role = models.CharField(max_length=32, choices=ROLE_CHOICES)
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+        print(self.role)
+
         if self.role == self.ADMIN:
+            self.groups.clear()
             group = Group.objects.get(name='admins')
             group.user_set.add(self)
         elif self.role == self.PROJECT_MANAGER:
-            group = Group.objects.get(name='projects')
+            self.groups.clear()
+            group = Group.objects.get(name='project managers')
             group.user_set.add(self)
         elif self.role == self.DEVELOPER:
+            self.groups.clear()
             group = Group.objects.get(name='developers')
             group.user_set.add(self)
         elif self.role == self.SUBMITTER:
+            self.groups.clear()
             group = Group.objects.get(name='submitters')
             group.user_set.add(self)
+
+        super().save(*args, **kwargs)
 
 
 class Ticket(models.Model):
@@ -87,7 +94,7 @@ class Ticket(models.Model):
                           related_name='assigned_tickets', null=True)
     type = models.CharField(max_length=32, choices=TYPE_CHOICES)
     status = models.CharField(
-        max_length=32, default=OPEN, choices=STATUS_CHOICES)
+        max_length=32, default=NEW, choices=STATUS_CHOICES)
     priority = models.CharField(
         max_length=16, default=MID, choices=PRIORITY_CHOICES)
     updated = models.DateTimeField(auto_now=True)
