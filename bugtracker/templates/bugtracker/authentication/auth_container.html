@@ -1,0 +1,16 @@
+{% extends "bugtracker/layout.html" %}
+
+
+{% block body %}
+<div class="d-flex justify-content-center align-items-center min-vh-100 min-vw-100">
+    {% block auth_content%}
+    {% endblock %}
+
+    {% comment %} <div class="card p-3" style="width:23%; height:55%%;">
+        <div style="padding: 15%">
+
+        </div>
+    </div> {% endcomment %}
+</div>
+
+{% endblock %}
