@@ -15,7 +15,6 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail, BadHeaderError
 import json
 from django.core.paginator import Paginator
-from django.utils.translation import to_locale
 
 
 from .models import User, Ticket
