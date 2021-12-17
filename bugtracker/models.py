@@ -86,15 +86,38 @@ class Ticket(models.Model):
     uid = models.UUIDField(
         primary_key=False, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     creator = ForeignKey(User, on_delete=SET_NULL,
                          related_name="created_tickets", null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     assignee = ForeignKey(User, on_delete=SET_NULL,
-                          related_name='assigned_tickets', null=True)
+                          related_name='assigned_tickets', null=True, blank=True)
     type = models.CharField(max_length=32, choices=TYPE_CHOICES)
     status = models.CharField(
         max_length=32, default=NEW, choices=STATUS_CHOICES)
     priority = models.CharField(
         max_length=16, default=MID, choices=PRIORITY_CHOICES)
     updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title}"
+
+    def serialize(self):
+        if self.assignee != None:
+            assignee = self.assignee.username
+        else:
+            assignee = ""
+
+        return {
+            "title": self.title,
+            "uid": self.uid,
+            "description": self.description,
+            "creator": self.creator.username,
+            "timestamp": self.timestamp.isoformat(),
+            "assignee": assignee,
+            "type": self.type,
+            "status": self.status,
+            "priority": self.priority,
+            "updated": self.updated,
+            "id": self.id
+        }

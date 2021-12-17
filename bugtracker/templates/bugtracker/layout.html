@@ -5,10 +5,31 @@
 
 <head>
     <title>{% block title %}Bug Tracker{% endblock %}</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+
+    {% comment %} Bootstrap {% endcomment %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+
     <link href="{% static 'bugtracker/styles.css' %}" rel="stylesheet">
     <link rel="icon" href="">
+
+
+
+    {% comment %} React CDN {% endcomment %}
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    {% comment %} CSRF {% endcomment %}
+    <script>
+        var CSRF_TOKEN = '{{ csrf_token }}';
+    </script>
+
+
     {% block script %}
     {% endblock %}
 </head>

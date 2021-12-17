@@ -6,8 +6,11 @@
     <div class="sidebar shadow p-3 mb-5">
         <h1><i class="bi bi-bug"></i>Bug Tracker</h1>
         <div class="list-group-flush">
-            <a href="#" class="list-group-item list-group-item-action" aria-current="true">
-                The current link item
+            <a href="/" class="list-group-item list-group-item-action shadow" aria-current="true">
+                Dashboards
+            </a>
+            <a href="{% url 'ticket' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
+                Tickets
             </a>
         </div>
     </div>
@@ -16,30 +19,17 @@
         <nav class="navbar navbar-expand-xl navbar-light bg-light justify-content-between flex-row-reverse shadow">
             <div class="">
                 <ul class="navbar-nav mr-auto" id="nav">
-                    {% if user.is_authenticated %}
 
                     <li class="nav-item">
                         <div class="btn nav-link"><strong id="logged_in_user">{{ user.role }}</strong></div>
                     </li>
-                    {% endif %}
                     <li class="nav-item">
                         <div class="btn nav-link" href="{% url 'index' %}">All Tickets</div>
-                    </li>
-                    {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <div class="btn nav-link">Following</div>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
                     </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
-                    {% endif %}
+
                 </ul>
             </div>
         </nav>
