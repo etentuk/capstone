@@ -1,6 +1,9 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.db.models.query_utils import Q
@@ -10,9 +13,11 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.core.mail import send_mail, BadHeaderError
+import json
+from django.core.paginator import Paginator
 
 
-from .models import User
+from .models import User, Ticket
 
 
 def index(request):
@@ -103,3 +108,80 @@ def password_reset_request(request):
                     return HttpResponse('Invalid header found.')
         return redirect("/password_reset/done/")
     return render(request=request, template_name="bugtracker/authentication/password_reset.html")
+
+
+@login_required
+def ticket(request):
+    return render(request, "bugtracker/tickets.html")
+
+
+@login_required
+def user_list(request):
+    users = User.objects.all()
+    usernames = []
+    for user in users:
+        usernames += [user.get_username()]
+    return JsonResponse({"users": usernames}, status=200)
+
+
+@login_required
+def create_ticket(request):
+    # Creating a new ticket must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    data = json.loads(request.body)
+    try:
+        assignee = User.objects.get(username=data.get("username"))
+    except ObjectDoesNotExist:
+        assignee = None
+    new_ticket = Ticket(title=data.get('title'), description=data.get("description"),
+                        creator=request.user, assignee=assignee, type=data.get("type"), status=data.get("status"), priority=data.get("priority"), )
+    new_ticket.save()
+    return JsonResponse({'new_ticket': new_ticket.serialize()}, status=200)
+
+
+@login_required
+def get_all_user_tickets(request, page):
+    user_tickets = Ticket.objects.filter(
+        Q(assignee__exact=request.user) | Q(creator__exact=request.user))
+    user_tickets.order_by("timestamp").all()
+    _tickets = Ticket.objects.order_by("timestamp").all()
+    all_tickets = Paginator(_tickets, 10)
+    tickets = all_tickets.page(page)
+    return JsonResponse({"all_tickets": [t.serialize() for t in tickets], "ticket_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
+
+
+@login_required
+def get_ticket(request, ticket_id):
+    try:
+        ticket = Ticket.objects.get(pk=ticket_id)
+        return JsonResponse(ticket.serialize(), status=200, safe=False)
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Ticket does not exist"}, status=404)
+
+
+@login_required
+def edit_ticket(request):
+    if request.method != "PUT":
+        return JsonResponse({"error": "Update Only Via PUT"}, status=404)
+    data = json.loads(request.body)
+    try:
+        ticket_object = Ticket.objects.get(pk=data.get("ticket_id"))
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "No Ticket found"}, status=404)
+    if request.user.has_perm('bugtracker.change_ticket'):
+        try:
+            ticket_object.assignee = User.objects.get(
+                username=data.get("assignee"))
+        except ObjectDoesNotExist:
+            assignee = None
+
+        ticket_object.title = data.get("title")
+        ticket_object.description = data.get("description")
+        ticket_object.type = data.get("type")
+        ticket_object.status = data.get("status")
+        ticket_object.priority = data.get("priority")
+
+        ticket_object.save()
+        return JsonResponse({"message": "successfully saved!"}, status=200)
+    return JsonResponse({"error": "Unauthorized!"}, status=401)
