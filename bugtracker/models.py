@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.deletion import CASCADE, SET_NULL
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.fields.related import ForeignKey
+from simple_history.models import HistoricalRecords
 import uuid
 
 
@@ -98,6 +99,7 @@ class Ticket(models.Model):
     priority = models.CharField(
         max_length=16, default=MID, choices=PRIORITY_CHOICES)
     updated = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.title}"
