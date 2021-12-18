@@ -148,19 +148,42 @@ def get_all_user_tickets(request, page):
     _tickets = Ticket.objects.order_by("timestamp").all()
     all_tickets = Paginator(_tickets, 10)
     tickets = all_tickets.page(page)
-    return JsonResponse({"all_tickets": [t.serialize() for t in tickets], "ticket_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
+    return JsonResponse({"all_tickets": [t.serialize() for t in tickets], "total_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
 
 
 @login_required
 def get_ticket(request, ticket_id):
     try:
         ticket = Ticket.objects.get(pk=ticket_id)
-        return JsonResponse(ticket.serialize(), status=200, safe=False)
+        return JsonResponse({"ticket": ticket.serialize()}, status=200, safe=False)
     except ObjectDoesNotExist:
         return JsonResponse({"error": "Ticket does not exist"}, status=404)
 
 
 @login_required
+def get_ticket_history(request, ticket_id, page):
+    try:
+        ticket = Ticket.objects.get(pk=ticket_id)
+        t_history = ticket.history.all()
+        delta = []
+        for i in range(len(t_history)):
+            if(i + 1 >= len(t_history)):
+                break
+            delta += [t_history[i].diff_against(t_history[i+1])]
+        all_history = []
+        for change in delta:
+            for c in change.changes:
+                all_history += [{"change": f"{c.field} changed from {c.old} to {c.new}",
+                                 "timestamp": change.new_record.updated}]
+
+        all_history = Paginator(all_history, 5)
+        ticket_history = all_history.page(page)
+        return JsonResponse({"ticket_history": [t for t in ticket_history], "total_pages": all_history.num_pages, "total_count": all_history.count}, status=200, safe=False)
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Ticket does not exist"}, status=404)
+
+
+@ login_required
 def edit_ticket(request):
     if request.method != "PUT":
         return JsonResponse({"error": "Update Only Via PUT"}, status=404)
