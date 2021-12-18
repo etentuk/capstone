@@ -187,6 +187,8 @@ function TablePagination(props) {
                     totalCount: result.total_count,
                 });
                 props.setData(result[props.urlResponse]);
+            } else {
+                props.setHash("error");
             }
         })();
     }, [currentPage]);
@@ -251,13 +253,9 @@ function TicketList(props) {
             : setTickets(data);
     }, [search, data]);
 
-    const editTicket = (id) => {
-        history.pushState({ page: `#edit/${id}` }, "", `#edit/${id}`);
-        props.setHash(`#edit/${id}`);
-    };
-    const ticketDetails = (id) => {
-        history.pushState({ page: `#details/${id}` }, "", `#details/${id}`);
-        props.setHash(`#details/${id}`);
+    const gotoPage = (url) => {
+        history.pushState({ page: url }, "", url);
+        props.setHash(url);
     };
 
     const renderRows = () => {
@@ -275,7 +273,7 @@ function TicketList(props) {
                     <td>
                         <button
                             className="btn btn-light"
-                            onClick={() => editTicket(t.id)}
+                            onClick={() => gotoPage(`#edit/${t.id}`)}
                         >
                             Edit
                         </button>
@@ -283,7 +281,7 @@ function TicketList(props) {
                     <td>
                         <button
                             className="btn btn-light"
-                            onClick={() => ticketDetails(t.id)}
+                            onClick={() => gotoPage(`#details/${id}`)}
                         >
                             Details
                         </button>
@@ -342,15 +340,14 @@ function TicketDetails(props) {
                 setTicket(result.ticket);
             } else {
                 setTicket(undefined);
+                props.setHash("#error");
             }
         })();
     }, []);
     const error = {
         title: "404 Not Found",
-        message: "Ticked Does not Exist",
+        message: "Ticket Does not Exist",
     };
-
-    console.log(ticketHistory);
 
     const edit = () => {
         history.pushState(
