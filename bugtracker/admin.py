@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Ticket
+from .models import Project, User, Ticket
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -11,3 +11,4 @@ class UserAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(User, UserAdmin)
 admin.site.register(Ticket)
+admin.site.register(Project)

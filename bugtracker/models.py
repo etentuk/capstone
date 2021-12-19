@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.db.models.deletion import CASCADE, SET_NULL
 from django.contrib.contenttypes.models import ContentType
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, ManyToManyField
 from simple_history.models import HistoricalRecords
 import uuid
 
@@ -23,8 +23,6 @@ class User(AbstractUser):
     role = models.CharField(max_length=32, choices=ROLE_CHOICES)
 
     def save(self, *args, **kwargs):
-        print(self.role)
-
         if self.role == self.ADMIN:
             self.groups.clear()
             group = Group.objects.get(name='admins')
@@ -43,6 +41,40 @@ class User(AbstractUser):
             group.user_set.add(self)
 
         super().save(*args, **kwargs)
+
+    def serialize(self):
+        return {
+            "username": self.username,
+            "email": self.email,
+            "role":self.role
+        }
+
+
+class Project(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    description = models.TextField(blank=True)
+    creator = ForeignKey(User, on_delete=SET_NULL,
+                         related_name="created_projects", null=True)
+    assignees = ManyToManyField(
+        User, related_name="assigned_projects", blank=True,)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return f"{self.name} created by {self.creator.username}"
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "creator": self.creator.username,
+            "assignees": [
+                u.username
+                for u in self.assignees.all()],
+            "timestamp": self.timestamp.isoformat(),
+        }
 
 
 class Ticket(models.Model):
@@ -100,6 +132,7 @@ class Ticket(models.Model):
         max_length=16, default=MID, choices=PRIORITY_CHOICES)
     updated = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()
+    project = ForeignKey(Project, related_name="tickets", on_delete=CASCADE)
 
     def __str__(self):
         return f"{self.title}"
@@ -121,5 +154,22 @@ class Ticket(models.Model):
             "status": self.status,
             "priority": self.priority,
             "updated": self.updated,
-            "id": self.id
+            "id": self.id,
+            "project": self.project.name
+        }
+
+
+class Comment(models.Model):
+    commenter = ForeignKey(User, on_delete=CASCADE, related_name="comments")
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.message} by {self.creator.username}"
+
+    def serialize(self):
+        return {
+            "commenter": self.commenter.username,
+            "message": self.message,
+            "timestamp": self.timestamp.isoformat(),
         }

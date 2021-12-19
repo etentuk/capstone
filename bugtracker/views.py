@@ -15,9 +15,10 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail, BadHeaderError
 import json
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import permission_required
 
 
-from .models import User, Ticket
+from .models import Project, User, Ticket
 
 
 def index(request):
@@ -71,7 +72,6 @@ def register(request):
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
-            user.isDeveloper()
             user.save()
         except IntegrityError:
             return render(request, "bugtracker/authentication/register.html", {
@@ -116,6 +116,11 @@ def ticket(request):
 
 
 @login_required
+def project(request):
+    return render(request, "bugtracker/projects.html")
+
+
+@login_required
 def user_list(request):
     users = User.objects.all()
     usernames = []
@@ -134,8 +139,12 @@ def create_ticket(request):
         assignee = User.objects.get(username=data.get("username"))
     except ObjectDoesNotExist:
         assignee = None
+    try:
+        project = Project.objects.get(pk=data.get("project_id"))
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Project does not exist"}, status=404)
     new_ticket = Ticket(title=data.get('title'), description=data.get("description"),
-                        creator=request.user, assignee=assignee, type=data.get("type"), status=data.get("status"), priority=data.get("priority"), )
+                        creator=request.user, assignee=assignee, type=data.get("type"), status=data.get("status"), priority=data.get("priority"), project=project)
     new_ticket.save()
     return JsonResponse({'new_ticket': new_ticket.serialize()}, status=200)
 
@@ -148,7 +157,7 @@ def get_all_user_tickets(request, page):
     _tickets = Ticket.objects.order_by("timestamp").all()
     all_tickets = Paginator(_tickets, 10)
     tickets = all_tickets.page(page)
-    return JsonResponse({"all_tickets": [t.serialize() for t in tickets], "total_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
+    return JsonResponse({"tickets": [t.serialize() for t in tickets], "total_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
 
 
 @login_required
@@ -185,14 +194,15 @@ def get_ticket_history(request, ticket_id, page):
 
 @ login_required
 def edit_ticket(request):
-    if request.method != "PUT":
-        return JsonResponse({"error": "Update Only Via PUT"}, status=404)
-    data = json.loads(request.body)
-    try:
-        ticket_object = Ticket.objects.get(pk=data.get("ticket_id"))
-    except ObjectDoesNotExist:
-        return JsonResponse({"error": "No Ticket found"}, status=404)
     if request.user.has_perm('bugtracker.change_ticket'):
+
+        if request.method != "PUT":
+            return JsonResponse({"error": "Update Only Via PUT"}, status=404)
+        data = json.loads(request.body)
+        try:
+            ticket_object = Ticket.objects.get(pk=data.get("ticket_id"))
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": "No Ticket found"}, status=404)
         try:
             ticket_object.assignee = User.objects.get(
                 username=data.get("assignee"))
@@ -208,3 +218,94 @@ def edit_ticket(request):
         ticket_object.save()
         return JsonResponse({"message": "successfully saved!"}, status=200)
     return JsonResponse({"error": "Unauthorized!"}, status=401)
+
+
+@login_required
+@permission_required('bugtracker.add_project', raise_exception=True)
+def create_project(request):
+    if request.method != 'POST':
+        return JsonResponse({"error": "POST request required."}, status=400)
+    data = json.loads(request.body)
+    new_project = Project(name=data.get("name"), description=data.get(
+        "description"), creator=request.user)
+    new_project.save()
+
+    for user in data.get("assignees"):
+        try:
+            new_project.assignees.add(User.objects.get(username=user))
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": f"User {user} does exist"}, status=400)
+    return JsonResponse({'new_project': new_project.serialize()})
+
+
+@login_required
+def get_user_projects(request, page):
+    created_user_projects = request.user.created_projects.all()
+    assigned_user_projects = request.user.assigned_projects.all()
+    user_projects = created_user_projects | assigned_user_projects
+    user_projects.order_by("-timestamp")
+    page_projects = Paginator(user_projects, 10)
+    curr_page = page_projects.page(page)
+    return JsonResponse({"projects": [p.serialize() for p in curr_page], "total_count": page_projects.count, "total_pages": page_projects.num_pages}, status=200)
+
+
+@login_required
+def get_project(request, id):
+    try:
+        project = Project.objects.get(pk=id)
+        return JsonResponse({"project": project.serialize()}, status=200, safe=False)
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Ticket does not exist"}, status=404)
+
+
+@login_required
+def get_assignees(request, id, page):
+    try:
+        project = Project.objects.get(pk=id)
+        assignees = project.assignees.all()
+        assignees = Paginator(assignees, 10)
+        curr_page = assignees.page(page)
+        return JsonResponse({"assignees": [a.serialize() for a in curr_page], "total_count": assignees.count, "total_pages": assignees.num_pages}, status=200, safe=False)
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Project does not exist"}, status=404)
+
+
+@login_required
+def edit_project(request):
+    if request.user.has_perm('bugtracker.change_project'):
+        if request.method != "PUT":
+            return JsonResponse({"error": "Update Only Via PUT"}, status=404)
+        data = json.loads(request.body)
+        try:
+            project = Project.objects.get(pk=data.get("id"))
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": "Project does not exist"}, status=404)
+        removed_users = project.assignees.all().exclude(
+            username__in=data.get("assignees"))
+
+        for user in removed_users:
+            project.assignees.remove(user)
+
+        for user in data.get("assignees"):
+            try:
+                project.assignees.add(User.objects.get(username=user))
+            except ObjectDoesNotExist:
+                return JsonResponse({"error": f"User {user} does exist"}, status=400)
+        project.name = data.get("name")
+        project.description = data.get("description")
+
+        project.save()
+        return JsonResponse({"message": "successfully saved!"}, status=200)
+    return JsonResponse({"error": "Unauthorized!"}, status=401)
+
+
+@login_required
+def get_project_tickets(request, id, page):
+    try:
+        project = Project.objects.get(pk=id)
+        tickets = project.tickets.all()
+        tickets = Paginator(tickets, 5)
+        curr_page = tickets.page(page)
+        return JsonResponse({"tickets": [t.serialize() for t in curr_page], "total_count": tickets.count, "total_pages": tickets.num_pages}, status=200, safe=False)
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Project does not exist"}, status=404)
