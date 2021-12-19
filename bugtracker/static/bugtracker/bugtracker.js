@@ -519,24 +519,26 @@ function ProjectForm(props) {
     const [users, setUsers] = React.useState([]);
 
     React.useEffect(() => {
-        (async () => {
+        async () => {
             try {
                 const response = await fetch("/userlist");
                 const result = await response.json();
                 setUsers(result.users);
+                if (props.page === "Edit") {
+                    const response = await fetch(
+                        `/project/details/${props.id}`
+                    );
+                    const result = await response.json();
+                    setProject({
+                        name: result.project.name,
+                        description: result.project.description,
+                        assignees: result.project.assignees,
+                    });
+                }
             } catch (e) {
                 props.setHash("#error");
             }
-            if (props.page) {
-                const response = await fetch(`/project/details/${props.id}`);
-                const result = await response.json();
-                setProject({
-                    name: result.project.name,
-                    description: result.project.description,
-                    assignees: result.project.assignees,
-                });
-            }
-        })();
+        };
     }, []);
 
     const handleSelect = (e) => {
@@ -544,7 +546,6 @@ function ProjectForm(props) {
             e.target.selectedOptions,
             (option) => option.value
         );
-        console.log(values);
         setProject({ ...project, assignees: values });
     };
 
@@ -618,6 +619,7 @@ function ProjectForm(props) {
                     </label>
                     <select
                         name="assignees"
+                        id="project_form_assigness"
                         className="form-control"
                         onChange={handleSelect}
                         multiple
@@ -873,4 +875,141 @@ function ProjectApp() {
 
 if (window.location.pathname === "/project/") {
     ReactDOM.render(<ProjectApp />, document.querySelector("#project_app"));
+}
+
+function ManageUsers() {
+    const [users, setUsers] = React.useState({});
+    const [selectedUsers, setSelectedUsers] = React.useState([]);
+    const [role, setRole] = React.useState("--Select Role/None--");
+    const roles = [
+        "--Select Role/None--",
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SUBMITTER",
+        "DEVELOPER",
+    ];
+    React.useEffect(() => {
+        (async () => {
+            try {
+                const response = await fetch("/userlist");
+                const result = await response.json();
+                setUsers(result.userlist);
+            } catch (e) {
+                props.setHash("#error");
+            }
+        })();
+    }, []);
+
+    const handleSelect = (e) => {
+        const values = Array.from(
+            e.target.selectedOptions,
+            (option) => option.value
+        );
+        setSelectedUsers(values);
+    };
+
+    const saveUser = async (e) => {
+        e.preventDefault();
+        try {
+            await fetch("/user_role/edit", {
+                method: "PUT",
+                mode: "same-origin",
+                headers: {
+                    "X-CSRFToken": CSRF_TOKEN,
+                },
+                body: JSON.stringify({
+                    users: selectedUsers,
+                    role,
+                }),
+            });
+            alert("Successully Changed Role");
+            const response = await fetch("/userlist");
+            const result = await response.json();
+            setSelectedUsers([]);
+            setRole("--Select Role/None--");
+            setUsers(result.userlist);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    return (
+        <div>
+            <h1> Manage User Roles</h1>
+            <form onSubmit={saveUser}>
+                <label className="form-label" for="role_form_users">
+                    Project Assignees
+                </label>
+                <select
+                    name="users"
+                    id="role_form_users"
+                    className="form-control"
+                    onChange={handleSelect}
+                    multiple
+                    value={selectedUsers}
+                >
+                    {Object.keys(users).map((val) => (
+                        <option className="form-select" value={val}>
+                            {val}
+                        </option>
+                    ))}
+                </select>
+                <label className="form-label" for="role_form_role">
+                    Project Assignees
+                </label>
+                <select
+                    name="role"
+                    id="role_form_role"
+                    className="form-control"
+                    onChange={(e) => setRole(e.target.value)}
+                    value={role}
+                >
+                    {roles.map((r) => (
+                        <option className="form-select" value={r}>
+                            {r}
+                        </option>
+                    ))}
+                </select>
+                {selectedUsers.length && role !== "--Select Role/None--" ? (
+                    <button
+                        type="submit"
+                        class="btn btn-primary mt-3"
+                        disabled={!(selectedUsers.length && role)}
+                    >
+                        Save User
+                    </button>
+                ) : null}
+            </form>
+            <div className="card m-3 p-3 shadow">
+                <h3>All Users</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Object.values(users).map((p) => {
+                            return (
+                                <tr>
+                                    <td>{p.username}</td>
+                                    <td>{p.email}</td>
+                                    <td>{p.role}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+if (window.location.pathname === "/user_roles/") {
+    ReactDOM.render(
+        <ManageUsers />,
+        document.querySelector("#manage_users_app")
+    );
 }

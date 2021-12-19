@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch("/dashboard")
         .then((response) => {
             if (!response.ok) {
-                return response;
+                throw new Error();
             }
             return response.json();
         })
@@ -34,15 +34,26 @@ document.addEventListener("DOMContentLoaded", function () {
                                 "rgba(153, 102, 255, 1)",
                                 "rgba(255, 159, 64, 1)",
                             ],
-                            borderWidth: 1,
+                            hoverOffset: 4,
                         },
                     ],
                 },
                 options: {
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
+                        xAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
+                        yAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
                     },
                 },
             });
@@ -80,9 +91,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
                 options: {
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
+                        xAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
+                        yAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
                     },
                 },
             });
@@ -118,9 +140,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
                 options: {
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
+                        xAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
+                        yAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
                     },
                 },
             });
@@ -158,11 +191,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
                 options: {
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
+                        xAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
+                        yAxes: [
+                            {
+                                gridLines: {
+                                    display: false,
+                                },
+                            },
+                        ],
                     },
                 },
             });
+        })
+        .catch((e) => {
+            console.log(e);
         });
 });

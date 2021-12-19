@@ -122,12 +122,22 @@ def project(request):
 
 
 @login_required
+def profile(request):
+    return render(request, "bugtracker/user_profile.html")
+
+
+@login_required
+def manage_users(request):
+    return render(request, "bugtracker/manage_roles.html")
+
+
+@login_required
 def user_list(request):
     users = User.objects.all()
     usernames = []
     for user in users:
         usernames += [user.get_username()]
-    return JsonResponse({"users": usernames}, status=200)
+    return JsonResponse({"users": usernames, "userlist": {u.username: u.serialize() for u in users}}, status=200)
 
 
 @login_required
@@ -154,7 +164,7 @@ def create_ticket(request):
 def get_all_user_tickets(request, page):
     user_tickets = Ticket.objects.filter(
         Q(assignee__exact=request.user) | Q(creator__exact=request.user))
-    user_tickets.order_by("timestamp").all()
+    user_tickets.order_by("-timestamp").all()
     all_tickets = Paginator(user_tickets, 10)
     tickets = all_tickets.page(page)
     return JsonResponse({"tickets": [t.serialize() for t in tickets], "total_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
@@ -324,10 +334,24 @@ def dashboard_info(request):
     project = t.order_by('project').values(
         'project__name').annotate(count=Count('project__name'))
 
-
     return JsonResponse({
         "status_count": {s['status']: s['count'] for s in status},
         "priority_count": {s['priority']: s['count'] for s in priority},
         "type_count": {s['type']: s['count'] for s in type},
         "project_count": {s['project__name']: s['count'] for s in project},
     }, status=200)
+
+
+@login_required
+def edit_user_role(request):
+    if request.method != "PUT":
+        return JsonResponse({"error": "Only accessible via PUT"})
+    data = json.loads(request.body)
+    for u in data.get('users'):
+        try:
+            user = User.objects.get(username=u)
+            user.role = data.get('role')
+            user.save()
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": f"User {u} does not exist"}, status=404)
+    return JsonResponse({"success": "successfully saved users"}, status=200)

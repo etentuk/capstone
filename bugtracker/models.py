@@ -46,7 +46,8 @@ class User(AbstractUser):
         return {
             "username": self.username,
             "email": self.email,
-            "role":self.role
+            "role": self.role,
+            "full_name": f"{self.first_name} {self.last_name}",
         }
 
 
