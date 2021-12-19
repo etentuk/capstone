@@ -1,9 +1,35 @@
 {% extends "bugtracker/content_container.html" %}
 
+{% load static %}
+
 {% block content%}
 
 
+
+
 <h1>Dashboards for Tickets</h1>
+<div class="d-flex flex-row h-50">
+    <div width="400" height="400">
+        <canvas id="dashboard_tickets_priority"></canvas>
+    </div>
+    <div width="400" height="400">
+        <canvas id="dashboard_tickets_type"></canvas>
+    </div>
+</div>
+<div class="d-flex flex-row h-50">
+    <div width="400" height="400">
+        <canvas id="dashboard_tickets_status"></canvas>
+    </div>
+    <div width="400" height="400">
+        <canvas id="dashboard_tickets_project"></canvas>
+    </div>
+</div>
+
 
 
 {% endblock%}
+
+
+{% block script %}
+<script src="{% static 'bugtracker/dashboards.js' %}"></script>
+{% endblock %}

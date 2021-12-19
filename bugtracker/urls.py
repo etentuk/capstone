@@ -33,5 +33,8 @@ urlpatterns = [
     path('project/tickets/<int:id>/<int:page>',
          views.get_project_tickets, name="get_project"),
     path('project/assignees/<int:id>/<int:page>',
-         views.get_assignees, name="get_assignees")
+         views.get_assignees, name="get_assignees"),
+
+    # Dashboard
+    path('dashboard', views.dashboard_info, name="dashboard_info")
 ]
