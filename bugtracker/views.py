@@ -16,6 +16,7 @@ from django.core.mail import send_mail, BadHeaderError
 import json
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Count
 
 
 from .models import Project, User, Ticket
@@ -154,8 +155,7 @@ def get_all_user_tickets(request, page):
     user_tickets = Ticket.objects.filter(
         Q(assignee__exact=request.user) | Q(creator__exact=request.user))
     user_tickets.order_by("timestamp").all()
-    _tickets = Ticket.objects.order_by("timestamp").all()
-    all_tickets = Paginator(_tickets, 10)
+    all_tickets = Paginator(user_tickets, 10)
     tickets = all_tickets.page(page)
     return JsonResponse({"tickets": [t.serialize() for t in tickets], "total_count": all_tickets.count, "total_pages": all_tickets.num_pages}, safe=False)
 
@@ -309,3 +309,25 @@ def get_project_tickets(request, id, page):
         return JsonResponse({"tickets": [t.serialize() for t in curr_page], "total_count": tickets.count, "total_pages": tickets.num_pages}, status=200, safe=False)
     except ObjectDoesNotExist:
         return JsonResponse({"error": "Project does not exist"}, status=404)
+
+
+@login_required
+def dashboard_info(request):
+    t = Ticket.objects.filter(
+        Q(assignee__exact=request.user) | Q(creator__exact=request.user))
+    status = t.order_by('status').values(
+        'status').annotate(count=Count('status'))
+    priority = t.order_by('priority').values(
+        'priority').annotate(count=Count('priority'))
+    type = t.order_by('type').values(
+        'type').annotate(count=Count('type'))
+    project = t.order_by('project').values(
+        'project__name').annotate(count=Count('project__name'))
+
+
+    return JsonResponse({
+        "status_count": {s['status']: s['count'] for s in status},
+        "priority_count": {s['priority']: s['count'] for s in priority},
+        "type_count": {s['type']: s['count'] for s in type},
+        "project_count": {s['project__name']: s['count'] for s in project},
+    }, status=200)

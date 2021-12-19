@@ -122,7 +122,11 @@ function TicketForm(props) {
                     ticket_id: props.id,
                 }),
             });
-            location.href = "/ticket/#list";
+            if (props.page === "Create") {
+                location.href = `/project/#details/${props.project_id}`;
+            } else {
+                location.href = "/ticket/#list";
+            }
         } catch (e) {
             props.setHash("error");
         }
