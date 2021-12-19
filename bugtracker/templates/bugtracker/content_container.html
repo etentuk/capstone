@@ -9,11 +9,17 @@
             <a href="/" class="list-group-item list-group-item-action shadow" aria-current="true">
                 Dashboards
             </a>
+            <a href="{% url 'manage_users'%}" class="list-group-item list-group-item-action shadow" aria-current="true">
+                Manage User Roles
+            </a>
             <a href="{% url 'project' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
                 Projects
             </a>
             <a href="{% url 'ticket' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
-                Tickets
+                My Tickets
+            </a>
+            <a href="{% url 'profile' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
+                My Profile
             </a>
         </div>
     </div>
@@ -24,10 +30,11 @@
                 <ul class="navbar-nav mr-auto" id="nav">
 
                     <li class="nav-item">
-                        <div class="btn nav-link"><strong id="logged_in_user">{{ user.role }}</strong></div>
+                        <a class="btn nav-link" href="{% url 'profile'%}"><strong
+                                id="logged_in_user">{{ user.role }}</strong></a>
                     </li>
                     <li class="nav-item">
-                        <div class="btn nav-link" href="{% url 'index' %}">All Tickets</div>
+                        <a class="btn nav-link" href="{% url 'index' %}">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>

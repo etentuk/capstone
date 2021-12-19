@@ -10,6 +10,8 @@ urlpatterns = [
     path("register", views.register, name="register"),
     path("ticket/", views.ticket, name="ticket"),
     path("project/", views.project, name="project"),
+    path("user_roles/", views.manage_users, name="manage_users"),
+    path("profile", views.profile, name="profile"),
     path("password_reset", views.password_reset_request, name="password_reset"),
 
     # API Endpoints
@@ -36,5 +38,8 @@ urlpatterns = [
          views.get_assignees, name="get_assignees"),
 
     # Dashboard
-    path('dashboard', views.dashboard_info, name="dashboard_info")
+    path('dashboard', views.dashboard_info, name="dashboard_info"),
+
+    # Users
+    path('user_role/edit', views.edit_user_role, name="edit_user_role"),
 ]
