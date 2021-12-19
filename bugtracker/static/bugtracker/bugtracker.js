@@ -123,8 +123,6 @@ function TicketForm(props) {
                 }),
             });
             location.href = "/ticket/#list";
-            // props.setHash("#list");
-            // history.pushState({ page: "#list" }, "", "#list");
         } catch (e) {
             props.setHash("error");
         }
@@ -528,7 +526,6 @@ function ProjectForm(props) {
             if (props.page) {
                 const response = await fetch(`/project/details/${props.id}`);
                 const result = await response.json();
-                console.log(result);
                 setProject({
                     name: result.project.name,
                     description: result.project.description,
@@ -549,7 +546,6 @@ function ProjectForm(props) {
 
     const saveProject = async (e) => {
         e.preventDefault();
-        console.log("project", project);
         try {
             const response = await fetch(
                 `/project/${props.page.toLowerCase()}`,
@@ -565,9 +561,8 @@ function ProjectForm(props) {
                     }),
                 }
             );
-            console.log(await response.json());
-            props.setHash("#list/1");
-            history.pushState({ page: "#list/1" }, "", "#list/1");
+            props.setHash("#list");
+            history.pushState({ page: "#list" }, "", "#list");
         } catch (e) {
             console.log(e);
             props.setHash("error");
