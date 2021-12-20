@@ -3,29 +3,32 @@
 {% block body %}
 
 <div class="container-fluid position-relative">
-    <div class="sidebar shadow p-3 mb-5">
+    <div class="sidebar shadow p-3 mb-5 position-absolute">
         <h1><i class="bi bi-bug"></i>Bug Tracker</h1>
-        <div class="list-group-flush">
-            <a href="/" class="list-group-item list-group-item-action shadow" aria-current="true">
+        <div class="list-group-flush mt-5">
+            <a href="/" class="list-group-item list-group-item-action  " aria-current="true">
                 Dashboards
             </a>
-            <a href="{% url 'manage_users'%}" class="list-group-item list-group-item-action shadow" aria-current="true">
+            {% if perms.bugtracker.change_role %}
+            <a href="{% url 'manage_users'%}" class="list-group-item list-group-item-action  " aria-current="true">
                 Manage User Roles
             </a>
-            <a href="{% url 'project' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
+            {% endif %}
+            <a href="{% url 'project' %}" class="list-group-item list-group-item-action  " aria-current="true">
                 Projects
             </a>
-            <a href="{% url 'ticket' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
+            <a href="{% url 'ticket' %}" class="list-group-item list-group-item-action  " aria-current="true">
                 My Tickets
             </a>
-            <a href="{% url 'profile' %}" class="list-group-item list-group-item-action shadow" aria-current="true">
+            <a href="{% url 'profile' %}" class="list-group-item list-group-item-action  " aria-current="true">
                 My Profile
             </a>
         </div>
     </div>
 
-    <div style=" position: absolute; left:20%; width: 80%; z-index:1">
-        <nav class="navbar navbar-expand-xl navbar-light bg-light justify-content-between flex-row-reverse shadow">
+    <div style=" position: absolute; left:20%; width: 80%; height:100vh; z-index:1">
+        <nav class="navbar navbar-expand-xl navbar-light bg-light justify-content-between flex-row-reverse shadow"
+            style="height: 7%">
             <div class="">
                 <ul class="navbar-nav mr-auto" id="nav">
 
@@ -44,7 +47,7 @@
             </div>
         </nav>
 
-        <div class="p-3 overflow-auto">
+        <div class="p-3 overflow-auto container-fluid position-absolute" style="height: 93%">
             {% block content %}
             {% endblock %}
         </div>

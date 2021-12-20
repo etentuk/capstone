@@ -25,6 +25,7 @@
     {% comment %} CSRF {% endcomment %}
     <script>
         var CSRF_TOKEN = '{{ csrf_token }}';
+        var user_perms = '{{ perms.bugtracker }}'
     </script>
 
 
