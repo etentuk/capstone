@@ -73,6 +73,7 @@ def register(request):
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
+            user.role = 'ADMIN'
             user.save()
         except IntegrityError:
             return render(request, "bugtracker/authentication/register.html", {
@@ -151,7 +152,7 @@ def create_ticket(request):
             return JsonResponse({"error": "POST request required."}, status=400)
         data = json.loads(request.body)
         try:
-            assignee = User.objects.get(username=data.get("username"))
+            assignee = User.objects.get(username=data.get("assignee"))
         except ObjectDoesNotExist:
             assignee = None
         try:
