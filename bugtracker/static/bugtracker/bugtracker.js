@@ -54,7 +54,7 @@ function TicketForm(props) {
                     });
                 }
             } catch (e) {
-                props.setHash("#errors");
+                props.setHash("#error");
             }
         })();
     }, []);
@@ -128,7 +128,7 @@ function TicketForm(props) {
                 location.href = "/ticket/#list";
             }
         } catch (e) {
-            props.setHash("error");
+            props.setHash("#error");
         }
     };
 
@@ -267,40 +267,11 @@ function TicketList(props) {
     };
 
     const renderRows = () => {
-        return tickets.map((t) => {
-            const date = new Date(t.timestamp);
-            return (
-                <tr>
-                    <th scope="row">{t.id}</th>
-                    <td>{t.title}</td>
-                    <td>{t.assignee}</td>
-                    <td>{t.priority}</td>
-                    <td>{t.status}</td>
-                    <td>{t.type}</td>
-                    <td>{date.toUTCString()}</td>
-                    <td>
-                        <button
-                            className="btn btn-light"
-                            onClick={() => gotoPage(`/ticket/#edit/${t.id}`)}
-                        >
-                            Edit
-                        </button>
-                    </td>
-                    <td>
-                        <button
-                            className="btn btn-light"
-                            onClick={() => gotoPage(`/ticket/#details/${t.id}`)}
-                        >
-                            Details
-                        </button>
-                    </td>
-                </tr>
-            );
-        });
+        return;
     };
 
     return (
-        <div className="card shadow p-3 ">
+        <div className="card shadow p-3">
             <div className="d-flex flex-row justify-content-between">
                 <h1 className="d-flex">{props.title} Tickets</h1>
                 <input
@@ -310,29 +281,76 @@ function TicketList(props) {
                 />
             </div>
 
-            <table class="table" id="ticket_list">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Title</th>
-                        <th scope="col">Developer Assigned</th>
-                        <th scope="col">Priority</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Created</th>
-                        <th scope="col"></th>
-                        <th scope="col"></th>
-                    </tr>
-                </thead>
-                <tbody>{renderRows()}</tbody>
+            <div class="table-responsive">
+                <table class="table" id="ticket_list">
+                    <thead>
+                        <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Developer Assigned</th>
+                            <th scope="col">Priority</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Created</th>
+                            {user_perms.includes("bugtracker.change_ticket") ? (
+                                <th scope="col"></th>
+                            ) : null}
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
 
-                <TablePagination
-                    url={props.listUrl}
-                    urlResponse={"tickets"}
-                    setData={setData}
-                    setHash={props.setHash}
-                />
-            </table>
+                    <tbody>
+                        {tickets.map((t) => {
+                            const date = new Date(t.timestamp);
+                            return (
+                                <tr>
+                                    <td>{t.title}</td>
+                                    <td>{t.assignee}</td>
+                                    <td>{t.priority}</td>
+                                    <td>{date.toUTCString()}</td>
+                                    <td>{t.status}</td>
+                                    <td>{t.type}</td>
+                                    {user_perms.includes(
+                                        "bugtracker.change_ticket"
+                                    ) ? (
+                                        <td>
+                                            <button
+                                                className="btn btn-light"
+                                                onClick={() =>
+                                                    gotoPage(
+                                                        `/ticket/#edit/${t.id}`
+                                                    )
+                                                }
+                                            >
+                                                Edit
+                                            </button>
+                                        </td>
+                                    ) : null}
+
+                                    <td>
+                                        <button
+                                            className="btn btn-light"
+                                            onClick={() =>
+                                                gotoPage(
+                                                    `/ticket/#details/${t.id}`
+                                                )
+                                            }
+                                        >
+                                            Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+
+                    <TablePagination
+                        url={props.listUrl}
+                        urlResponse={"tickets"}
+                        setData={setData}
+                        setHash={props.setHash}
+                    />
+                </table>
+            </div>
         </div>
     );
 }
@@ -519,26 +537,28 @@ function ProjectForm(props) {
     const [users, setUsers] = React.useState([]);
 
     React.useEffect(() => {
-        async () => {
+        (async () => {
             try {
                 const response = await fetch("/userlist");
                 const result = await response.json();
                 setUsers(result.users);
-                if (props.page === "Edit") {
-                    const response = await fetch(
-                        `/project/details/${props.id}`
-                    );
-                    const result = await response.json();
-                    setProject({
-                        name: result.project.name,
-                        description: result.project.description,
-                        assignees: result.project.assignees,
-                    });
-                }
             } catch (e) {
                 props.setHash("#error");
             }
-        };
+
+            if (props.page === "Edit") {
+                console.log("props");
+                const res = await fetch(`/project/details/${props.id}`);
+                const r = await res.json();
+                console.log(r);
+
+                setProject({
+                    name: r.project.name,
+                    description: r.project.description,
+                    assignees: r.project.assignees,
+                });
+            }
+        })();
     }, []);
 
     const handleSelect = (e) => {
@@ -668,14 +688,16 @@ function ProjectList(props) {
                 <tr>
                     <td>{q.name}</td>
                     <td>{date.toUTCString()}</td>
-                    <td>
-                        <button
-                            className="btn btn-light"
-                            onClick={() => gotoPage(`#edit/${q.id}`)}
-                        >
-                            Edit
-                        </button>
-                    </td>
+                    {user_perms.includes("bugtracker.change_project") ? (
+                        <td>
+                            <button
+                                className="btn btn-light"
+                                onClick={() => gotoPage(`#edit/${q.id}`)}
+                            >
+                                Edit
+                            </button>
+                        </td>
+                    ) : null}
                     <td>
                         <button
                             className="btn btn-light"
@@ -693,6 +715,16 @@ function ProjectList(props) {
         <div className="card shadow p-3 ">
             <div className="d-flex flex-row justify-content-between">
                 <h1 className="d-flex">My Projects</h1>
+                {user_perms.includes("bugtracker.change_project") ? (
+                    <div>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => props.setHash("#create")}
+                        >
+                            Create Project
+                        </button>
+                    </div>
+                ) : null}
                 <input
                     type="text"
                     className="d-flex form-control w-25"
@@ -700,24 +732,26 @@ function ProjectList(props) {
                 />
             </div>
 
-            <table class="table" id="ticket_list">
-                <thead>
-                    <tr>
-                        <th scope="col">Project Name</th>
-                        <th scope="col">Created</th>
-                        <th scope="col"></th>
-                        <th scope="col"></th>
-                    </tr>
-                </thead>
-                <tbody>{renderRows()}</tbody>
+            <div className="table-responsive">
+                <table class="table" id="ticket_list">
+                    <thead>
+                        <tr>
+                            <th scope="col">Project Name</th>
+                            <th scope="col">Created</th>
+                            <th scope="col"></th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>{renderRows()}</tbody>
 
-                <TablePagination
-                    url={"/project/all"}
-                    urlResponse={"projects"}
-                    setData={setData}
-                    setHash={props.setHash}
-                />
-            </table>
+                    <TablePagination
+                        url={"/project/all"}
+                        urlResponse={"projects"}
+                        setData={setData}
+                        setHash={props.setHash}
+                    />
+                </table>
+            </div>
         </div>
     );
 }
@@ -760,15 +794,16 @@ function ProjectDetails(props) {
                                 Add Ticket
                             </button>
                         </div>
-
-                        <div className="mx-3">
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => gotoPage("edit")}
-                            >
-                                Edit Project
-                            </button>
-                        </div>
+                        {user_perms.includes("bugtracker.change_project") ? (
+                            <div className="mx-3">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => gotoPage("edit")}
+                                >
+                                    Edit Project
+                                </button>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
 
@@ -790,34 +825,36 @@ function ProjectDetails(props) {
                     <div class="col"></div>
                 </div>
             </div>
-            <div className="card m-3 p-3 shadow">
+            <div className="card mt-3 mb-3 p-3 shadow">
                 <h3>Assigned Personnel</h3>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {personnel.map((p) => {
-                            return (
-                                <tr>
-                                    <td>{p.username}</td>
-                                    <td>{p.email}</td>
-                                    <td>{p.role}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                    <TablePagination
-                        url={`/project/assignees/${props.id}`}
-                        urlResponse={"assignees"}
-                        setData={setPersonnel}
-                        setHash={props.setHash}
-                    />
-                </table>
+                <div className="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {personnel.map((p) => {
+                                return (
+                                    <tr>
+                                        <td>{p.username}</td>
+                                        <td>{p.email}</td>
+                                        <td>{p.role}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                        <TablePagination
+                            url={`/project/assignees/${props.id}`}
+                            urlResponse={"assignees"}
+                            setData={setPersonnel}
+                            setHash={props.setHash}
+                        />
+                    </table>
+                </div>
             </div>
             <div>
                 <TicketList
@@ -980,8 +1017,9 @@ function ManageUsers() {
                     </button>
                 ) : null}
             </form>
-            <div className="card m-3 p-3 shadow">
+            <div className="card m-3 p-3 shadow table-responsive">
                 <h3>All Users</h3>
+
                 <table class="table">
                     <thead>
                         <tr>

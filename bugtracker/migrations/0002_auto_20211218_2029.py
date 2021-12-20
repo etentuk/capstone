@@ -29,10 +29,13 @@ def create_groups(apps, schema_migration):
     submitter.save()
     developer.save()
 
+    role_change = Permission.objects.get(codename="change_role")
+
     ticket_permissions = get_permissions('ticket')
     project_permissions = get_permissions('project')
 
-    admin.permissions.add(*ticket_permissions, *project_permissions)
+    admin.permissions.add(*ticket_permissions, *
+                          project_permissions, role_change)
     project_manager.permissions.add(*ticket_permissions, *project_permissions)
     developer.permissions.add(*ticket_permissions, project_permissions[0])
     submitter.permissions.add(

@@ -128,7 +128,9 @@ def profile(request):
 
 @login_required
 def manage_users(request):
-    return render(request, "bugtracker/manage_roles.html")
+    if request.user.has_perm('bugtracker.change_role'):
+        return render(request, "bugtracker/manage_roles.html")
+    return HttpResponse("<h1>401 Unauthorized!</h1>")
 
 
 @login_required
@@ -143,21 +145,24 @@ def user_list(request):
 @login_required
 def create_ticket(request):
     # Creating a new ticket must be via POST
-    if request.method != "POST":
-        return JsonResponse({"error": "POST request required."}, status=400)
-    data = json.loads(request.body)
-    try:
-        assignee = User.objects.get(username=data.get("username"))
-    except ObjectDoesNotExist:
-        assignee = None
-    try:
-        project = Project.objects.get(pk=data.get("project_id"))
-    except ObjectDoesNotExist:
-        return JsonResponse({"error": "Project does not exist"}, status=404)
-    new_ticket = Ticket(title=data.get('title'), description=data.get("description"),
-                        creator=request.user, assignee=assignee, type=data.get("type"), status=data.get("status"), priority=data.get("priority"), project=project)
-    new_ticket.save()
-    return JsonResponse({'new_ticket': new_ticket.serialize()}, status=200)
+    if request.user.has_perm('bugtracker.add_ticket'):
+
+        if request.method != "POST":
+            return JsonResponse({"error": "POST request required."}, status=400)
+        data = json.loads(request.body)
+        try:
+            assignee = User.objects.get(username=data.get("username"))
+        except ObjectDoesNotExist:
+            assignee = None
+        try:
+            project = Project.objects.get(pk=data.get("project_id"))
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": "Project does not exist"}, status=404)
+        new_ticket = Ticket(title=data.get('title'), description=data.get("description"),
+                            creator=request.user, assignee=assignee, type=data.get("type"), status=data.get("status"), priority=data.get("priority"), project=project)
+        new_ticket.save()
+        return JsonResponse({'new_ticket': new_ticket.serialize()}, status=200)
+    return HttpResponse("<h1>401 Unauthorized!</h1>")
 
 
 @login_required
@@ -205,7 +210,6 @@ def get_ticket_history(request, ticket_id, page):
 @ login_required
 def edit_ticket(request):
     if request.user.has_perm('bugtracker.change_ticket'):
-
         if request.method != "PUT":
             return JsonResponse({"error": "Update Only Via PUT"}, status=404)
         data = json.loads(request.body)
@@ -227,25 +231,26 @@ def edit_ticket(request):
 
         ticket_object.save()
         return JsonResponse({"message": "successfully saved!"}, status=200)
-    return JsonResponse({"error": "Unauthorized!"}, status=401)
+    return HttpResponse("<h1>401 Unauthorized!</h1>")
 
 
 @login_required
-@permission_required('bugtracker.add_project', raise_exception=True)
 def create_project(request):
-    if request.method != 'POST':
-        return JsonResponse({"error": "POST request required."}, status=400)
-    data = json.loads(request.body)
-    new_project = Project(name=data.get("name"), description=data.get(
-        "description"), creator=request.user)
-    new_project.save()
+    if request.user.has_perm('bugtracker.add_project'):
+        if request.method != 'POST':
+            return JsonResponse({"error": "POST request required."}, status=400)
+        data = json.loads(request.body)
+        new_project = Project(name=data.get("name"), description=data.get(
+            "description"), creator=request.user)
+        new_project.save()
 
-    for user in data.get("assignees"):
-        try:
-            new_project.assignees.add(User.objects.get(username=user))
-        except ObjectDoesNotExist:
-            return JsonResponse({"error": f"User {user} does exist"}, status=400)
-    return JsonResponse({'new_project': new_project.serialize()})
+        for user in data.get("assignees"):
+            try:
+                new_project.assignees.add(User.objects.get(username=user))
+            except ObjectDoesNotExist:
+                return JsonResponse({"error": f"User {user} does exist"}, status=400)
+        return JsonResponse({'new_project': new_project.serialize()})
+    return HttpResponse("<h1>401 Unauthorized!</h1>")
 
 
 @login_required
@@ -306,7 +311,7 @@ def edit_project(request):
 
         project.save()
         return JsonResponse({"message": "successfully saved!"}, status=200)
-    return JsonResponse({"error": "Unauthorized!"}, status=401)
+    return HttpResponse("<h1>401 Unauthorized!</h1>")
 
 
 @login_required
@@ -344,14 +349,16 @@ def dashboard_info(request):
 
 @login_required
 def edit_user_role(request):
-    if request.method != "PUT":
-        return JsonResponse({"error": "Only accessible via PUT"})
-    data = json.loads(request.body)
-    for u in data.get('users'):
-        try:
-            user = User.objects.get(username=u)
-            user.role = data.get('role')
-            user.save()
-        except ObjectDoesNotExist:
-            return JsonResponse({"error": f"User {u} does not exist"}, status=404)
-    return JsonResponse({"success": "successfully saved users"}, status=200)
+    if request.user.has_perm('bugtracker.change_role'):
+        if request.method != "PUT":
+            return JsonResponse({"error": "Only accessible via PUT"})
+        data = json.loads(request.body)
+        for u in data.get('users'):
+            try:
+                user = User.objects.get(username=u)
+                user.role = data.get('role')
+                user.save()
+            except ObjectDoesNotExist:
+                return JsonResponse({"error": f"User {u} does not exist"}, status=404)
+        return JsonResponse({"success": "successfully saved users"}, status=200)
+    return HttpResponse("<h1>401 Unauthorized!</h1>")

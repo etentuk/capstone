@@ -22,6 +22,10 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=32, choices=ROLE_CHOICES)
 
+    class Meta:
+        permissions = [(
+            "change_role", "Can Edit the role of a User")]
+
     def save(self, *args, **kwargs):
         if self.role == self.ADMIN:
             self.groups.clear()

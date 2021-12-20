@@ -34,27 +34,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                 "rgba(153, 102, 255, 1)",
                                 "rgba(255, 159, 64, 1)",
                             ],
-                            hoverOffset: 4,
+                            borderWidth: 1,
                         },
                     ],
-                },
-                options: {
-                    scales: {
-                        xAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                        yAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                    },
                 },
             });
 
@@ -89,24 +71,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                     ],
                 },
-                options: {
-                    scales: {
-                        xAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                        yAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                    },
-                },
             });
 
             const ctxType = document.getElementById("dashboard_tickets_type");
@@ -137,24 +101,6 @@ document.addEventListener("DOMContentLoaded", function () {
                             borderWidth: 1,
                         },
                     ],
-                },
-                options: {
-                    scales: {
-                        xAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                        yAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                    },
                 },
             });
 
@@ -188,24 +134,6 @@ document.addEventListener("DOMContentLoaded", function () {
                             borderWidth: 1,
                         },
                     ],
-                },
-                options: {
-                    scales: {
-                        xAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                        yAxes: [
-                            {
-                                gridLines: {
-                                    display: false,
-                                },
-                            },
-                        ],
-                    },
                 },
             });
         })
