@@ -1,0 +1,58 @@
+{% extends "bugtracker/layout.html" %}
+
+{% block body %}
+
+<div class="container-fluid position-relative">
+    <div class="sidebar shadow p-3 mb-5 position-absolute">
+        <h1><i class="bi bi-bug"></i>Bug Tracker</h1>
+        <div class="list-group-flush mt-5">
+            <a href="/" class="list-group-item list-group-item-action  " aria-current="true">
+                Dashboards
+            </a>
+            {% if perms.bugtracker.change_role %}
+            <a href="{% url 'manage_users'%}" class="list-group-item list-group-item-action  " aria-current="true">
+                Manage User Roles
+            </a>
+            {% endif %}
+            <a href="{% url 'project' %}" class="list-group-item list-group-item-action  " aria-current="true">
+                Projects
+            </a>
+            <a href="{% url 'ticket' %}" class="list-group-item list-group-item-action  " aria-current="true">
+                My Tickets
+            </a>
+            <a href="{% url 'profile' %}" class="list-group-item list-group-item-action  " aria-current="true">
+                My Profile
+            </a>
+        </div>
+    </div>
+
+    <div style=" position: absolute; left:20%; width: 80%; height:100vh; z-index:1">
+        <nav class="navbar navbar-expand-xl navbar-light bg-light justify-content-between flex-row-reverse shadow"
+            style="height: 7%">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <strong id="logged_in_user">{{user.username}}_{{ user.role }}</strong> </button>
+                <ul class="dropdown-menu" id="nav">
+
+
+                    <li class="nav-item">
+                        <a class="dropdown-item" href="{% url 'index' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="dropdown-item" href="{% url 'profile'%}">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="dropdown-item" href="{% url 'logout' %}">Log Out</a>
+                    </li>
+
+                </ul>
+            </div>
+        </nav>
+
+        <div class="p-3 overflow-auto container-fluid position-absolute" style="height: 93%">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</div> {% endblock %}

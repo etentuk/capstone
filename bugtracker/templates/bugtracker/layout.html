@@ -5,53 +5,42 @@
 
 <head>
     <title>{% block title %}Bug Tracker{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
+    </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link href="{% static 'network/styles.css' %}" rel="stylesheet">
+
+
+    <link href="{% static 'bugtracker/styles.css' %}" rel="stylesheet">
     <link rel="icon" href="">
+
+    {% comment %} Chart.js {% endcomment %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.2/chart.min.js"></script>
+
+
+    {% comment %} React CDN {% endcomment %}
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    {% comment %} CSRF {% endcomment %}
+    <script>
+        var CSRF_TOKEN = '{{ csrf_token }}';
+        var user_perms = '{{ perms.bugtracker }}'
+    </script>
+
+
     {% block script %}
     {% endblock %}
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between">
-        <a class="navbar-brand" href="#">Bug Tracker</a>
+    {% block body %}
 
-        <div class="flex-row-reverse">
-            <ul class="navbar-nav mr-auto" id="nav">
-                {% if user.is_authenticated %}
+    {% endblock  %}
 
-                <li class="nav-item">
-                    <div class="btn nav-link"><strong id="logged_in_user">{{ user.username }}</strong></div>
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    <div class="btn nav-link" href="{% url 'index' %}" id="all_posts">All Posts</div>
-                </li>
-                {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <div class="btn nav-link" id="posts_following">Following</div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-
-    <div class="body">
-        {% block body %}
-        {% endblock %}
-    </div>
 </body>
 
 </html>

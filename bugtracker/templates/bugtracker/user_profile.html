@@ -1,0 +1,27 @@
+{% extends "bugtracker/content_container.html" %}
+
+{% load static %}
+
+{% block content%}
+<div className="card shadow p-3 ">
+    <h1>Profile Details</h1>
+
+
+
+    <h4>First Name</h4>
+    <p>{{ user.first_name }}</p>
+
+    <h4>Last Name</h4>
+    <p>{{ user.last_name }}</p>
+
+    <h4>Username</h4>
+    <p>{{ user.username }}</p>
+
+    <h4>Email</h4>
+    <p>{{ user.email }}</p>
+
+    <h4>Role</h4>
+    <p>{{ user.role }}</p>
+
+</div>
+{% endblock%}
