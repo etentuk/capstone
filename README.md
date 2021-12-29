@@ -40,16 +40,44 @@ Within a new terminal run the following commands.
 
 ## Distinctiveness and Complexity
 
-This project is a bug tracking application which draws upon the lessons learned in this course and attempts to build upon said lessons.
+This project is a bug tracking application which draws upon the lessons learned in this course and attempts to build upon said lessons. During development we all encounter various issues, have different tasks to complete and various milestones to achieve. These tasks are what I defined as tickets within the application and a collection of tickets is then represented as a project.
 
-It is distinct due to the fact that Role based Authorization was implemented, along with Data visualization to show a quick snapshot of the tickets belonging to a user. There are 4 User Roles within the application:
+This Tickets -> Project structure is the basis for everything which occurs within this web application. A project can be used to represent a milestone or a goal. For example the current project I am working on, this Bug tracker can be represented within the application and have various tickets within it. At a higher level I can also decide to split different parts of the application into a project of its own and then monitor the progress of these tickets from there.
 
--   Admin: Can make changes to all models and Assign user roles
--   Project Manager: Can create and modify Projects and Tickets
--   Developer: Can Create and Modify Tickets, View Projects
--   Submitter: Can Only create Tickets, View Projects
+Within an organization there are always different roles and access levels given to each person. I have also taken this into consideration and implemented a Role Based Access Control Authorization method.
 
-The Web application is built with Django and uses React with Javascript to render the pages on the frontend. There are three models in the application, Users, Projects and Tickets.
+To achieve this I used Django Groups to create 4 groups which Users Can be assigned to. They are described below:
+
+-   Admin: This is the highest level, an Admin can access all parts of the application. The Admin is the only user capable of changing the roles of other users within the application.
+
+-   Project Manager: This User manages and keeps tracks of the overall project and has the Arcjhitectural Vision to manage projects and see them to completion.
+
+-   Developer: Developers will mainly be focused on the task assigned to them, they are in charge of their tickets.They have full access to the Ticket interface.
+
+-   Submitter: These are the QA's who will report based on what they have evaluated from the work done by developers. They only have the ability to create Tickets and Read
+ access to the projects.
+
+I chose to use groups because I would be able to control the access and permissions assigned to each set of individuals at the same time and if there are more features or changes in the feature it is good to have acentral place to carry out these changes.
+
+When you sign into the application you are first met with a quick summary of the tickets in the application grouped by Status, Type, Priority and Project.
+
+There are 5 primary Pages to Navigate to, Dashboard, Manage User Roles, Projects, Tickets and User Profile. The Manage User page is only visible to Users with a role of ADMIN. If they try to access this URL they get an Unauthorized Error Message.
+
+To build the application I utilized React.js on the frontend within Javascript files, Each React component is then managed within its app component and the components are rendered based on the page which the user currently is.
+
+To change a user Role an Admin User can select multiple users and then assign the desired role to each of them.
+
+To implement the role assignment a custom migration file was created which created the new groups and assigned the users with the roles associated to the individual groups. While saving, the role attribute of the user is checked using an `IF` Statement. Based on the role the user has, the user is assigned to the group.
+
+To have the required RBAC, I utilized django permissions within my views. When a restricted view is accessed, the user permissions are checked in the database and if the required access is present, the following commands are carried out or else the user receives an Unauthorized Response.
+
+The next Feature is the projects, a Project Manager or Admin can create, edit or view a project. Each project has assignees who work on it. Also all projects have various tickets assigned to them. Within the projects you can view these tickets and users. From a project you can add a ticket. This is the only place to add tickets because each ticket needs a project to be assigned to.
+
+Following Projects you have the Tickets which are where all the tasks and bugs are described. Any user can create a ticket. Developers can make changes to tickets also as needed. The history of tickets is tracked and displayed. This helps you see the full lifecycle of the ticket. All Users can create, view or Edit a Ticket.
+
+Lastly the User Details are given in the Profile Section.
+
+Although best viewed on a laptop this site is also fully mobile responsive. Utilizes Django with 3 Models including the User Model. Goes beyond the teachings of the Course implementing RBAC and utilizes Javascript with React to render the Frontend.
 
 # Features
 

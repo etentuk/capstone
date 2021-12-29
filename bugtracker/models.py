@@ -162,19 +162,3 @@ class Ticket(models.Model):
             "id": self.id,
             "project": self.project.name
         }
-
-
-class Comment(models.Model):
-    commenter = ForeignKey(User, on_delete=CASCADE, related_name="comments")
-    message = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.message} by {self.creator.username}"
-
-    def serialize(self):
-        return {
-            "commenter": self.commenter.username,
-            "message": self.message,
-            "timestamp": self.timestamp.isoformat(),
-        }
